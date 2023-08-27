@@ -110,7 +110,6 @@ impl State for PendingReview {
 struct Published {}
 
 impl State for Published {
-    // --snip--
     fn request_review(self: Box<Self>) -> Box<dyn State> {
         self
     }
