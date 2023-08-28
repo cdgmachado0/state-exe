@@ -31,6 +31,7 @@ impl DraftPost {
     pub fn request_review(self) -> PendingReviewPost {
         PendingReviewPost { 
             content: self.content,
+            count: 0
          }
     }
 }
@@ -38,12 +39,16 @@ impl DraftPost {
 #[derive(Debug)]
 pub struct PendingReviewPost {
     content: String,
+    count: u8,
 }
 
 impl PendingReviewPost {
-    pub fn approve(self) -> Post {
-        Post {
-            content: self.content,
+    pub fn approve(mut self) -> Result<Post, Self> {
+        if self.count < 1 {
+            self.count += 1;
+            Err(self)
+        } else {
+            Ok(Post { content: self.content, })
         }
     }
 
@@ -51,5 +56,9 @@ impl PendingReviewPost {
         DraftPost { 
             content: self.content,
          }
+    }
+
+    pub fn count(&self) -> u8 {
+        self.count
     }
 }
