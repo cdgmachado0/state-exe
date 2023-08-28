@@ -6,10 +6,10 @@ pub struct Post {
     content: String,
 }
 
+#[derive(Debug)]
 pub struct DraftPost {
     content: String,
 }
-
 
 impl Post {
     pub fn new() -> DraftPost {
@@ -27,86 +27,29 @@ impl DraftPost {
     pub fn add_text(&mut self, text: &str) {
         self.content.push_str(text);
     }
-}
 
-
-
-trait State: Debug {
-    fn request_review(self: Box<Self>) -> Box<dyn State>;
-    fn approve(self: Box<Self>) -> Box<dyn State>;
-    fn content<'a>(&self, _: &'a Post) -> &'a str {
-        ""
-    }
-    fn reject(self: Box<Self>) -> Box<dyn State>;
-    fn check(&self) -> bool {
-        false
-    }          
-}
-
-
-#[derive(Debug)]
-struct Draft {}
-
-impl State for Draft {
-    fn request_review(self: Box<Self>) -> Box<dyn State> {
-        Box::new(PendingReview { count: 0 })
-    }
-
-    fn approve(self: Box<Self>) -> Box<dyn State> {
-        self
-    }
-
-    fn reject(self: Box<Self>) -> Box<dyn State> {
-        self
-    }
-
-    fn check(&self) -> bool {
-        true
+    pub fn request_review(self) -> PendingReviewPost {
+        PendingReviewPost { 
+            content: self.content,
+         }
     }
 }
 
 #[derive(Debug)]
-struct PendingReview {
-    count: u8,
+pub struct PendingReviewPost {
+    content: String,
 }
 
-impl State for PendingReview {
-    fn request_review(self: Box<Self>) -> Box<dyn State> {
-        self
-    }
-
-    fn approve(mut self: Box<Self>) -> Box<dyn State> {
-        if self.count < 1 {
-            self.count += 1;
-            self
-        } else {
-            Box::new(Published {})
+impl PendingReviewPost {
+    pub fn approve(self) -> Post {
+        Post {
+            content: self.content,
         }
     }
 
-    fn reject(self: Box<Self>) -> Box<dyn State> {
-        Box::new(Draft {})
-    }
-}
-
-
-#[derive(Debug)]
-struct Published {}
-
-impl State for Published {
-    fn request_review(self: Box<Self>) -> Box<dyn State> {
-        self
-    }
-
-    fn approve(self: Box<Self>) -> Box<dyn State> {
-        self
-    }
-
-    fn content<'a>(&self, post: &'a Post) -> &'a str {
-        &post.content
-    }
-
-    fn reject(self: Box<Self>) -> Box<dyn State> {
-        self
+    pub fn reject(self) -> DraftPost {
+        DraftPost { 
+            content: self.content,
+         }
     }
 }
